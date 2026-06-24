@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum ClientType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum PipelineStage {
+  LEAD
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+model Client {
+  id            String        @id @default(cuid())
+  type          ClientType
+
+  // Commun aux deux types
+  email         String        @unique
+  phone         String?
+
+  // Entreprise uniquement
+  companyName   String?
+  siret         String?
+  contactName   String?
+  contactRole   String?
+
+  // Particulier uniquement
+  firstName     String?
+  lastName      String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  opportunities Opportunity[]
+}
+
+model Opportunity {
+  id                String        @id @default(cuid())
+  title             String
+  amount            Decimal       @db.Decimal(10, 2)
+  expectedCloseDate DateTime
+  stage             PipelineStage @default(LEAD)
+  notes             String?
+
+  clientId          String
+  client            Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
