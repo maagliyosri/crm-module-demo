@@ -11,7 +11,11 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Erreur serveur');
+    // NestJS renvoie { message: string | string[] }
+    const msg = Array.isArray(error.message)
+      ? error.message.join(' | ')
+      : error.message ?? 'Erreur serveur';
+    throw new Error(msg);
   }
 
   return res.json();

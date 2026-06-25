@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { PipelineStage, ClientType } from '@/lib/types';
-
 
 interface Client {
   id: string;
@@ -23,14 +22,12 @@ const STAGE_LABELS: Record<PipelineStage, string> = {
   LOST: 'Perdu',
 };
 
-
-
 function clientName(c: Client): string {
   if (c.type === 'COMPANY') return c.companyName ?? '—';
   return [c.firstName, c.lastName].filter(Boolean).join(' ') || '—';
 }
 
-export default function NewOpportunityPage() {
+function NewOpportunityForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [clients, setClients] = useState<Client[]>([]);
@@ -39,20 +36,20 @@ export default function NewOpportunityPage() {
     amount: '',
     expectedCloseDate: '',
     stage: 'LEAD' as PipelineStage,
-    clientId: searchParams.get('clientId') ?? '',  // ← reads from URL
+    clientId: searchParams.get('clientId') ?? '',
     notes: '',
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-useEffect(() => {
-  apiFetch<{ data: Client[] } | Client[]>('/clients?limit=100')
-    .then((res) => {
-      const list = Array.isArray(res) ? res : res.data;
-      setClients(Array.isArray(list) ? list : []);
-    })
-    .catch(() => setClients([]));
-}, []);
+  useEffect(() => {
+    apiFetch<{ data: Client[] } | Client[]>('/clients?limit=100')
+      .then((res) => {
+        const list = Array.isArray(res) ? res : res.data;
+        setClients(Array.isArray(list) ? list : []);
+      })
+      .catch(() => setClients([]));
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -88,7 +85,6 @@ useEffect(() => {
       <h1 className="text-xl font-semibold text-gray-900 mb-6">Nouvelle opportunité</h1>
 
       <div className="space-y-4 mb-6">
-        {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
           <input
@@ -101,7 +97,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Amount */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Montant (€) *</label>
           <input
@@ -116,7 +111,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Expected close date */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Date de clôture prévue *</label>
           <input
@@ -128,7 +122,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Client */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
           <select
@@ -146,7 +139,6 @@ useEffect(() => {
           </select>
         </div>
 
-        {/* Stage */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Étape</label>
           <div className="flex gap-2 flex-wrap">
@@ -167,7 +159,6 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
           <textarea
@@ -189,7 +180,7 @@ useEffect(() => {
           disabled={submitting}
           className="bg-gray-900 text-white text-sm px-5 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
         >
-          {submitting ? 'Création...' : 'Créer l\'opportunité'}
+          {submitting ? 'Création...' : "Créer l'opportunité"}
         </button>
         <button
           onClick={() => router.back()}
@@ -199,5 +190,13 @@ useEffect(() => {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function NewOpportunityPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-gray-400">Chargement...</p>}>
+      <NewOpportunityForm />
+    </Suspense>
   );
 }

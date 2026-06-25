@@ -1,0 +1,151 @@
+[1mdiff --git a/frontend/app/opportunities/new/page.tsx b/frontend/app/opportunities/new/page.tsx[m
+[1mindex 989fb14..d076d1e 100644[m
+[1m--- a/frontend/app/opportunities/new/page.tsx[m
+[1m+++ b/frontend/app/opportunities/new/page.tsx[m
+[36m@@ -1,11 +1,10 @@[m
+ 'use client';[m
+ [m
+[31m-import { useEffect, useState } from 'react';[m
+[32m+[m[32mimport { Suspense, useEffect, useState } from 'react';[m
+ import { useRouter, useSearchParams } from 'next/navigation';[m
+ import { apiFetch } from '@/lib/api';[m
+ import { PipelineStage, ClientType } from '@/lib/types';[m
+ [m
+[31m-[m
+ interface Client {[m
+   id: string;[m
+   companyName?: string;[m
+[36m@@ -23,14 +22,12 @@[m [mconst STAGE_LABELS: Record<PipelineStage, string> = {[m
+   LOST: 'Perdu',[m
+ };[m
+ [m
+[31m-[m
+[31m-[m
+ function clientName(c: Client): string {[m
+   if (c.type === 'COMPANY') return c.companyName ?? '—';[m
+   return [c.firstName, c.lastName].filter(Boolean).join(' ') || '—';[m
+ }[m
+ [m
+[31m-export default function NewOpportunityPage() {[m
+[32m+[m[32mfunction NewOpportunityForm() {[m
+   const router = useRouter();[m
+   const searchParams = useSearchParams();[m
+   const [clients, setClients] = useState<Client[]>([]);[m
+[36m@@ -39,20 +36,20 @@[m [mexport default function NewOpportunityPage() {[m
+     amount: '',[m
+     expectedCloseDate: '',[m
+     stage: 'LEAD' as PipelineStage,[m
+[31m-    clientId: searchParams.get('clientId') ?? '',  // ← reads from URL[m
+[32m+[m[32m    clientId: searchParams.get('clientId') ?? '',[m
+     notes: '',[m
+   });[m
+   const [error, setError] = useState('');[m
+   const [submitting, setSubmitting] = useState(false);[m
+ [m
+[31m-useEffect(() => {[m
+[31m-  apiFetch<{ data: Client[] } | Client[]>('/clients?limit=100')[m
+[31m-    .then((res) => {[m
+[31m-      const list = Array.isArray(res) ? res : res.data;[m
+[31m-      setClients(Array.isArray(list) ? list : []);[m
+[31m-    })[m
+[31m-    .catch(() => setClients([]));[m
+[31m-}, []);[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    apiFetch<{ data: Client[] } | Client[]>('/clients?limit=100')[m
+[32m+[m[32m      .then((res) => {[m
+[32m+[m[32m        const list = Array.isArray(res) ? res : res.data;[m
+[32m+[m[32m        setClients(Array.isArray(list) ? list : []);[m
+[32m+[m[32m      })[m
+[32m+[m[32m      .catch(() => setClients([]));[m
+[32m+[m[32m  }, []);[m
+ [m
+   const handleChange = ([m
+     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,[m
+[36m@@ -88,7 +85,6 @@[m [museEffect(() => {[m
+       <h1 className="text-xl font-semibold text-gray-900 mb-6">Nouvelle opportunité</h1>[m
+ [m
+       <div className="space-y-4 mb-6">[m
+[31m-        {/* Title */}[m
+         <div>[m
+           <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>[m
+           <input[m
+[36m@@ -101,7 +97,6 @@[m [museEffect(() => {[m
+           />[m
+         </div>[m
+ [m
+[31m-        {/* Amount */}[m
+         <div>[m
+           <label className="block text-sm font-medium text-gray-700 mb-1">Montant (€) *</label>[m
+           <input[m
+[36m@@ -116,7 +111,6 @@[m [museEffect(() => {[m
+           />[m
+         </div>[m
+ [m
+[31m-        {/* Expected close date */}[m
+         <div>[m
+           <label className="block text-sm font-medium text-gray-700 mb-1">Date de clôture prévue *</label>[m
+           <input[m
+[36m@@ -128,7 +122,6 @@[m [museEffect(() => {[m
+           />[m
+         </div>[m
+ [m
+[31m-        {/* Client */}[m
+         <div>[m
+           <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>[m
+           <select[m
+[36m@@ -146,7 +139,6 @@[m [museEffect(() => {[m
+           </select>[m
+         </div>[m
+ [m
+[31m-        {/* Stage */}[m
+         <div>[m
+           <label className="block text-sm font-medium text-gray-700 mb-2">Étape</label>[m
+           <div className="flex gap-2 flex-wrap">[m
+[36m@@ -167,7 +159,6 @@[m [museEffect(() => {[m
+           </div>[m
+         </div>[m
+ [m
+[31m-        {/* Notes */}[m
+         <div>[m
+           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>[m
+           <textarea[m
+[36m@@ -189,7 +180,7 @@[m [museEffect(() => {[m
+           disabled={submitting}[m
+           className="bg-gray-900 text-white text-sm px-5 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50"[m
+         >[m
+[31m-          {submitting ? 'Création...' : 'Créer l\'opportunité'}[m
+[32m+[m[32m          {submitting ? 'Création...' : "Créer l'opportunité"}[m
+         </button>[m
+         <button[m
+           onClick={() => router.back()}[m
+[36m@@ -200,4 +191,12 @@[m [museEffect(() => {[m
+       </div>[m
+     </div>[m
+   );[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport default function NewOpportunityPage() {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <Suspense fallback={<p className="text-sm text-gray-400">Chargement...</p>}>[m
+[32m+[m[32m      <NewOpportunityForm />[m
+[32m+[m[32m    </Suspense>[m
+[32m+[m[32m  );[m
+ }[m
+\ No newline at end of file[m
+[1mdiff --git a/frontend/lib/api.ts b/frontend/lib/api.ts[m
+[1mindex 517c8a7..9b01d80 100644[m
+[1m--- a/frontend/lib/api.ts[m
+[1m+++ b/frontend/lib/api.ts[m
+[36m@@ -11,7 +11,11 @@[m [mexport async function apiFetch<T>([m
+ [m
+   if (!res.ok) {[m
+     const error = await res.json().catch(() => ({}));[m
+[31m-    throw new Error(error.message || 'Erreur serveur');[m
+[32m+[m[32m    // NestJS renvoie { message: string | string[] }[m
+[32m+[m[32m    const msg = Array.isArray(error.message)[m
+[32m+[m[32m      ? error.message.join(' | ')[m
+[32m+[m[32m      : error.message ?? 'Erreur serveur';[m
+[32m+[m[32m    throw new Error(msg);[m
+   }[m
+ [m
+   return res.json();[m

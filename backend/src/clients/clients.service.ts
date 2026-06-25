@@ -1,15 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import { ClientType } from '@prisma/client';
+import { ClientType, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateClientDto) {
-    return this.prisma.client.create({ data: dto });
+    try {
+      return await this.prisma.client.create({
+        data: {
+          type: dto.type,
+          email: dto.email,
+          phone: dto.phone,
+          companyName: dto.companyName,
+          siret: dto.siret,
+          contactName: dto.contactName,
+          contactRole: dto.contactRole,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('Un client avec cet email existe déjà');
+      }
+      throw e;
+    }
   }
 
   async findAll(type?: ClientType) {
@@ -31,7 +50,14 @@ export class ClientsService {
 
   async update(id: string, dto: UpdateClientDto) {
     await this.findOne(id);
-    return this.prisma.client.update({ where: { id }, data: dto });
+    try {
+      return await this.prisma.client.update({ where: { id }, data: dto });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('Un client avec cet email existe déjà');
+      }
+      throw e;
+    }
   }
 
   async remove(id: string) {
